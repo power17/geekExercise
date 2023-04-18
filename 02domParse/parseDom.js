@@ -11,6 +11,10 @@ function start(char) {
     if(char === '<') {
         return tag
     } else{
+        emit({
+            type: 'text',
+            value: char
+        })
         return start
     }
 }
