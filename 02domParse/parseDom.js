@@ -44,7 +44,7 @@ function closeTag(char) {
     if(char === '>') {
         emit(tagToken)
         // console.log(tagToken)
-        return text
+        return start
     } else{
         tagToken.tagName += char
         return closeTag
