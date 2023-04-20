@@ -8,6 +8,11 @@ createApp({
             title: 'hello mini Vue11'
         }
     },
+    mounted() {
+        setTimeout(() => {
+            this.title = 'data change'
+        }, 1000)
+    },
     render() {
         let node = document.createElement('h2')
         node.textContent = this.title

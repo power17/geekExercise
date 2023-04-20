@@ -9,6 +9,9 @@ const renderOptions = {
     insert(parent, child, achor) {
         // 设置null则为appendchild
         return parent.insertBefore(child, achor || null)
+    },
+    setElementText(element, text) {
+        element.textContent = text
     }
 }
 // 确保单例
