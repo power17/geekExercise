@@ -1,4 +1,5 @@
 import { createApp } from './mini-vue'
+import { createVNode } from './mini-vue/runtime-core/vNode'
 import './style.css'
 // import App from './App.vue'
 
@@ -14,9 +15,7 @@ createApp({
         }, 1000)
     },
     render() {
-        let node = document.createElement('h2')
-        node.textContent = this.title
-        return node
+        return createVNode('h2', {}, 'hello mini vue')
 
     }
 }).mount('#app')
