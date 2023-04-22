@@ -15,7 +15,17 @@ const renderOptions = {
     },
     createElement(tag) {
         return document.createElement(tag)
+    },
+    setElementText(el, text) {
+        el.textContent =text
+    },
+    removeElement(el) {
+        const parent = el.parentNode
+        if(parent) {
+            parent.removeChild(el)
+        }
     }
+
 }
 // 确保单例
 function ensureRender() {

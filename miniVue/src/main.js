@@ -6,16 +6,24 @@ import './style.css'
 createApp({
     data() {
         return {
-            title: 'hello mini Vue11'
+            title: ['hello mini Vue11', '1111','22222' ]
         }
     },
     mounted() {
         setTimeout(() => {
-            this.title = 'data change'
+            this.title = ['wow', 'data change' ]
         }, 1000)
     },
     render() {
-        return createVNode('h2', {}, 'hello mini vue')
+        if(Array.isArray(this.title)) {
+
+            return createVNode('h3', 
+            {}, 
+            this.title.map((v) => createVNode('p', {}, v)))
+        } else{
+            return createVNode('h3', {}, this.title)
+        }
+       
 
     }
 }).mount('#app')

@@ -3,7 +3,12 @@ import { effect, reactive } from "../reactive"
 import { createVNode } from "./vNode"
 // 创建渲染器
 export function createRenderer(options) {
-    const {createElement: hostCreateElement, insert: hostInsert} = options
+    const {
+        createElement: hostCreateElement,
+         insert: hostInsert,
+         setElementText: hostSetElementText,
+         removeElement: hostRemoveElement
+        } = options
     const render = (vnode, container) => {
         //  // 创建根节点 
         //  let container = options.querySelector(selector)
@@ -46,6 +51,7 @@ export function createRenderer(options) {
             mountComponent(n2, container)
         }else  {
             // patch
+            // patchElement(n1, n2)
         }
     }
     // 挂载三件事： 组件初始化，状态初始化，副作用安装
@@ -63,20 +69,30 @@ export function createRenderer(options) {
     }
   
     const setupRenderEffect = (instance, container) => {
+          // 执行渲染函数
+          const {render} = instance.vnode.type
         // 声明组件更新函数
         const componentUpdateFn = () => {
             if(!instance.isMounted) {
-                // 执行渲染函数
-                const {render} = instance.vnode.type
-                const vnode = render.call(instance.data)
+                // 保持最新的虚拟dom 下次可以作为旧的vnode
+                const vnode = (instance.subtree = render.call(instance.data))
                 // 递归调用
                 patch(null, vnode, container)
-                if(instance.vnode.type.isMounted) {
+                if(instance.vnode.type.mounted) {
                     // todo
                     instance.vnode.type.mounted.call(instance.data) 
-                }else{
-                    // 更新阶段
                 }
+                instance.isMounted = true
+            }else{
+                // 更新阶段
+                // 旧
+                const prevVNode = instance.subtree
+                // 新的
+                const nextVNode = render.call(instance.data) 
+                // 保持新的
+                instance.subtree = nextVNode
+
+                patch(prevVNode, nextVNode)
             }
         }
         // 建立更新机制
@@ -89,7 +105,7 @@ export function createRenderer(options) {
             // 创建阶段
             mountElement(n2, container)
         }else{
-
+            patchElement(n1,n2)
         }
 
     }
@@ -102,10 +118,56 @@ export function createRenderer(options) {
             el.textContent = vnode.children
         }else{
             // 数组
-            vnode.children.foreach(child => patch(null, child, el))
+            vnode.children.forEach(child => patch(null, child, el))
         }
         //    插入元素
         hostInsert(container, el)
+    }
+
+    // patch 
+    const patchElement = (n1, n2) => {
+        // 获取要更新的元素节点
+        const el = n2.el = n1.el
+        // 更新节点
+        if(n1.type === n2.type) {
+            const oldCh = n1.children
+            const newCh = n2.children
+            if(typeof oldCh === 'string') {
+                if(typeof newCh === 'string') {
+                    // 文本替换文本
+                   if(newCh !== oldCh) {
+                    hostSetElementText(el , newCh) 
+                   }
+                } else{
+                    // 文本替换数组
+                    hostSetElementText(el, '')
+                    newCh.forEach(v => patch(null, v, el))
+                }
+            }else {
+                if(typeof newCh === 'string') {
+                    // 之前子元素是数组， 新的是字符串
+                    hostSetElementText(el, newCh)
+                }else{
+                    // 变化前后都是数组
+                    updateChildren(oldCh, newCh, el)
+                }
+            }
+        }
+
+    }
+
+    const updateChildren = (oldCh, newCh, parentEle) => {
+        const len = Math.min(oldCh.length, newCh.length)
+        for(let i = 0; i < len; i++) {
+            patch(oldCh[i], newCh[i])
+        }
+        if(oldCh.length < newCh.length) {
+            // 新数组元素数组较长，则添加
+            newCh.slice(len).forEach(child => patch(null, child, parentEle))
+        } else{
+            oldCh.slice(len).forEach(child => hostRemoveElement(child.el))
+        }
+
     }
     
     return {
