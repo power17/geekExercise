@@ -12,6 +12,9 @@ const renderOptions = {
     },
     setElementText(element, text) {
         element.textContent = text
+    },
+    createElement(tag) {
+        return document.createElement(tag)
     }
 }
 // 确保单例
@@ -19,7 +22,14 @@ function ensureRender() {
     return renderer || createRenderer(renderOptions)
 }
 // 入口
-export const createApp = (rootComponent) => {
-  
-   return ensureRender().createApp(rootComponent)
+export const createApp = (rootComponent) => { 
+   const app = ensureRender().createApp(rootComponent)
+   const mount = app.mount
+   app.mount = function(containerOrSelector) {
+    const container = document.querySelector(containerOrSelector)
+    mount(container)
+   }
+
+
+   return app
 }
